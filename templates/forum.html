@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ forum.name }} — Life Helper{% endblock %}
+{% block content %}
+<div class="header-row">
+    <h1>{{ forum.name }}</h1>
+    {% if user %}<a href="/new_topic/{{ forum.id }}" class="btn">+ Новая тема</a>{% endif %}
+</div>
+<div class="list">
+    {% for t in topics %}
+    <div class="list-item">
+        <a href="/topic/{{ t.id }}"><strong>{{ t.title }}</strong></a>
+        <span class="meta">Автор: {{ t.author }} | {{ t.created_at }}</span>
+    </div>
+    {% else %}
+    <p>В этом разделе пока нет тем.</p>
+    {% endfor %}
+</div>
+{% endblock %}

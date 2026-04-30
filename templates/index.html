@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Главная — Life Helper{% endblock %}
+{% block content %}
+<h1>Главный раздел</h1>
+<div class="grid">
+    {% for f in forums %}
+    <div class="card">
+        <h2><a href="/forum/{{ f.id }}">{{ f.name }}</a></h2>
+        <p>{{ f.description }}</p>
+        <span class="meta">Тем: {{ f.topic_count }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
