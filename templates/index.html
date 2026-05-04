@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Главная — Life Helper{% endblock %}
 {% block content %}
-<h1 class="page-title">Главный раздел</h1>
+<h1 class="page-title centered">Главный раздел</h1>
 
 <div class="grid">
     {% for f in forums %}
     <div class="card">
         <h2>
             <a href="/forum/{{ f.id }}">
-                <span class="forum-icon">📁</span>
+                <span class="forum-icon"></span>
                 {{ f.name }}
             </a>
         </h2>
@@ -23,7 +23,7 @@
 </div>
 
 <div class="stats-section">
-    <h2>Статистика форума</h2>
+    <h2 class="centered">Статистика форума</h2>
     <div class="stats-grid">
         <div class="stat-item">
             <h3>1,000,000</h3>
