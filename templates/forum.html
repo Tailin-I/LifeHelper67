@@ -1,18 +1,36 @@
 {% extends "base.html" %}
 {% block title %}{{ forum.name }} — Life Helper{% endblock %}
 {% block content %}
-<div class="header-row">
+<nav class="breadcrumbs">
+    <a href="/">Главная</a> →
+    <a href="#forums">Форумы</a> →
+    <span>{{ forum.name }}</span>
+</nav>
+
+<div class="forum-header">
     <h1>{{ forum.name }}</h1>
-    {% if user %}<a href="/new_topic/{{ forum.id }}" class="btn">+ Новая тема</a>{% endif %}
+    {% if user %}
+        <a href="/new_topic/{{ forum.id }}" class="btn-new-topic">+ Новая тема</a>
+    {% endif %}
 </div>
-<div class="list">
-    {% for t in topics %}
-    <div class="list-item">
-        <a href="/topic/{{ t.id }}"><strong>{{ t.title }}</strong></a>
-        <span class="meta">Автор: {{ t.author }} | {{ t.created_at }}</span>
-    </div>
+
+<div class="topics-list">
+    {% if topics %}
+        {% for t in topics %}
+        <div class="topic-item">
+            <div class="topic-main">
+                <h3><a href="/topic/{{ t.id }}">{{ t.title }}</a></h3>
+                <div class="topic-meta">
+                    <span class="author">Автор: {{ t.author }}</span>
+                    <span class="date">{{ t.created_at }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     {% else %}
-    <p>В этом разделе пока нет тем.</p>
-    {% endfor %}
+        <div class="no-content">
+            <p>В этом разделе пока нет тем</p>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

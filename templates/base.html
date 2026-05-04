@@ -4,12 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Life Helper{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <nav>
-        <a href="/" class="logo">Life Helper</a>
+        <a href="/" class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Life Helper" class="logo-img">
+            <span>Life Helper</span>
+        </a>
         <div class="nav-links">
+            <a href="/">Главная</a>
+            <a href="#forums">Форумы</a>
+            <a href="#rules">Правила</a>
             {% if user %}
                 <span>👤 {{ user }}</span>
                 <a href="/logout">Выйти</a>
@@ -31,6 +38,13 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </main>
-    <footer>© 2026 Life Helper. Все права защищены.</footer>
+    <footer>
+        <p>© 2026 Life Helper. Все права защищены.</p>
+        <div class="footer-links">
+            <a href="#">Условия и правила</a>
+            <a href="#">Политика конфиденциальности</a>
+            <a href="#">Помощь</a>
+        </div>
+    </footer>
 </body>
 </html>

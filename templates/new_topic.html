@@ -1,10 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Новая тема{% endblock %}
+{% block title %}Новая тема — Life Helper{% endblock %}
 {% block content %}
-<h2>Создание темы</h2>
-<form method="POST">
-    <input type="text" name="title" placeholder="Заголовок темы" required style="width:100%;padding:10px;margin-bottom:10px;">
-    <textarea name="content" rows="6" placeholder="Текст сообщения..." required style="width:100%;padding:10px;"></textarea>
-    <button type="submit" style="margin-top:10px;">Создать</button>
-</form>
+<nav class="breadcrumbs">
+    <a href="/">Главная</a> →
+    <a href="/forum/{{ forum_id }}">Форумы</a> →
+    <span>Новая тема</span>
+</nav>
+
+<div class="new-topic-form">
+    <h2>Создание новой темы</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="title">Заголовок темы</label>
+            <input type="text" id="title" name="title" required placeholder="Введите заголовок...">
+        </div>
+        <div class="form-group">
+            <label for="content">Сообщение</label>
+            <textarea id="content" name="content" rows="8" required placeholder="Напишите ваше сообщение..."></textarea>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-create">Создать тему</button>
+            <a href="/forum/{{ forum_id }}" class="btn-cancel">Отмена</a>
+        </div>
+    </form>
+</div>
 {% endblock %}
