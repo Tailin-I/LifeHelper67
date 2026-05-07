@@ -3,54 +3,58 @@
 {% block content %}
 <nav class="breadcrumbs">
     <a href="/">Главная</a> →
-    <a href="/forum/{{ topic.forum_id }}">Форумы</a> →
+    <a href="/forum/{{ topic.forum_id }}">{{ topic.forum_name }}</a> →
     <span>{{ topic.title }}</span>
 </nav>
 
-<div class="topic-view">
-    <div class="topic-header">
-        <h1>{{ topic.title }}</h1>
-        <div class="topic-info">
-            <span>Раздел: {{ topic.author }}</span> •
-            <span>Просмотров: {{ topic.views if topic.views else 0 }}</span>
-        </div>
+<div class="topic-main-card">
+    <h1 class="topic-main-title">{{ topic.title }}</h1>
+    <div class="topic-main-info">
+        <span class="topic-author">
+            <svg class="icon-user" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            {{ topic.author }}
+        </span>
+        <span class="topic-date">
+            <svg class="icon-clock" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+            {{ topic.created_at }}
+        </span>
     </div>
-
-    <div class="posts">
-        {% for p in posts %}
-        <div class="post">
-            <div class="post-header">
-                <div class="post-author">
-                    <strong>{{ p.author }}</strong>
-                </div>
-                <div class="post-date">{{ p.created_at }}</div>
-            </div>
-            <div class="post-content">
-                {{ p.content }}
-            </div>
-            <div class="post-actions">
-                <button class="btn-like">❤️ Нравится</button>
-                <button class="btn-reply">↩️ Ответить</button>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    {% if user_id %}
-    <div class="reply-form">
-        <h3>Ответить в тему</h3>
-        <form method="POST">
-            <textarea name="content" rows="5" placeholder="Ваше сообщение..." required></textarea>
-            <div class="form-actions">
-                <button type="submit" class="btn-send">Отправить</button>
-                <button type="button" class="btn-cancel">Отмена</button>
-            </div>
-        </form>
-    </div>
-    {% else %}
-    <div class="login-prompt">
-        <p><a href="/login">Войдите</a> или <a href="/register">зарегистрируйтесь</a>, чтобы оставить ответ.</p>
-    </div>
-    {% endif %}
 </div>
+
+<div class="posts">
+    {% for p in posts %}
+    <div class="post">
+        <div class="post-header">
+            <div class="post-author">
+                <strong>{{ p.author }}</strong>
+                {% if p.reply_to_author %}<span class="reply-tag">↩️ в ответ @{{ p.reply_to_author }}</span>{% endif %}
+            </div>
+            <div class="post-date">{{ p.created_at }}</div>
+        </div>
+        <div class="post-content">{{ p.content }}</div>
+        <div class="post-actions">
+            <form action="/like/{{ p.id }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn-like {% if p.user_liked %}liked{% endif %}">❤️ {{ p.likes }}</button>
+            </form>
+            <a href="#reply-form" onclick="document.getElementById('reply_to_id').value={{ p.id }}; document.getElementById('reply_notice').textContent='Ответ для @{{ p.author }}'; document.getElementById('reply_notice').style.display='block';" class="btn-reply">↩️ Ответить</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if user_id %}
+<div class="reply-form" id="reply-form">
+    <h3>Ответить</h3>
+    <div id="reply_notice" style="display:none; color:#1877f2; font-weight:600; margin-bottom:10px;"></div>
+    <form method="POST">
+        <input type="hidden" name="reply_to_id" id="reply_to_id" value="">
+        <textarea name="content" rows="4" placeholder="Ваше сообщение..." required></textarea>
+        <button type="submit" class="btn-send">Отправить</button>
+    </form>
+</div>
+{% else %}
+<div style="background:#fff; border:1px solid #e4e6eb; border-radius:8px; padding:20px; margin-top:20px; text-align:center;">
+    <p><a href="/login" style="color:#1877f2; text-decoration:none; font-weight:600;">Войдите</a>, чтобы оставить ответ.</p>
+</div>
+{% endif %}
 {% endblock %}
