@@ -16,6 +16,7 @@
         <div class="nav-links">
             <a href="/">Главная</a>
             <a href="/forum/3">Правила</a>
+            <a href="/help_chat">Помощь</a>
             {% if user %}
                 <span>👤 {{ user }}</span>
                 <a href="/logout">Выйти</a>
@@ -25,6 +26,7 @@
             {% endif %}
         </div>
     </nav>
+
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -37,12 +39,13 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </main>
+
     <footer>
         <p>© 2026 Life Helper. Все права защищены.</p>
         <div class="footer-links">
             <a href="/forum/3">Условия и правила</a>
             <a href="/privacy">Политика конфиденциальности</a>
-            <a href="#">Помощь</a>
+            <a href="/help_chat">Помощь</a>
         </div>
     </footer>
 </body>

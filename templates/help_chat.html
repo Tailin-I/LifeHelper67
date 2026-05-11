@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Помощь — Life Helper{% endblock %}
+{% block content %}
+<nav class="breadcrumbs">
+    <a href="/">Главная</a> → <span>Помощь</span>
+</nav>
+
+<div class="help-chat-list">
+    <h1>Чат помощи</h1>
+
+    {% if is_moderator %}
+    <div class="moderator-panel">
+        <p>Вы просматриваете все активные чаты пользователей</p>
+    </div>
+    {% else %}
+    <div class="user-help-info">
+        <p>Опишите вашу проблему, и модераторы помогут вам</p>
+        {% if not chats %}
+        <form action="/help_chat/create" method="POST" style="margin-top: 20px;">
+            <button type="submit" class="btn-primary">Создать новый чат</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="chats-container">
+        {% if chats %}
+            {% for chat in chats %}
+            <div class="chat-item {% if chat.unread_count %}has-unread{% endif %}">
+                <a href="/help_chat/{{ chat.id }}" class="chat-link">
+                    {% if is_moderator %}
+                    <div class="chat-user">👤 {{ chat.username }}</div>
+                    <div class="chat-last-message">
+                        Последнее сообщение: {{ chat.last_message }}
+                    </div>
+                    {% if chat.unread_count %}
+                    <span class="unread-badge">{{ chat.unread_count }} новых</span>
+                    {% endif %}
+                    {% else %}
+                    <div class="chat-title">Чат с модераторами</div>
+                    <div class="chat-status">
+                        {% if chat.is_closed %}
+                            <span class="status-closed">🔒 Закрыт</span>
+                        {% else %}
+                            <span class="status-open">🟢 Открыт</span>
+                        {% endif %}
+                    </div>
+                    {% if chat.unread_count %}
+                    <span class="unread-badge">{{ chat.unread_count }} новых</span>
+                    {% endif %}
+                    {% endif %}
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-chats">
+                <p>Нет активных чатов</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

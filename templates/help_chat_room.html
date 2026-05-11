@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Чат помощи — Life Helper{% endblock %}
+{% block content %}
+<nav class="breadcrumbs">
+    <a href="/">Главная</a> →
+    <a href="/help_chat">Помощь</a> →
+    <span>Чат {% if is_moderator %}с {{ chat.username }}{% else %}с модераторами{% endif %}</span>
+</nav>
+
+<div class="chat-room">
+    <div class="chat-header">
+        <h2>
+            {% if is_moderator %}
+                Чат с {{ chat.username }}
+            {% else %}
+                Чат с модераторами
+            {% endif %}
+        </h2>
+        {% if chat.is_closed %}
+            <span class="chat-closed-badge">🔒 Чат закрыт</span>
+        {% endif %}
+        {% if is_moderator %}
+            <form action="/help_chat/{{ chat.id }}/close" method="POST" style="display: inline;">
+                <button type="submit" class="btn-close-chat">Закрыть чат</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="chat-messages">
+        {% for msg in messages %}
+        <div class="chat-message {% if msg.sender_id == user_id %}my-message{% else %}other-message{% endif %}">
+            <div class="message-author">
+                {{ msg.username }}
+                {% if msg.is_moderator %}
+                    <span class="moderator-badge">🛡️ Модератор</span>
+                {% endif %}
+            </div>
+            <div class="message-content">{{ msg.content }}</div>
+            <div class="message-time">{{ msg.created_at }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not chat.is_closed %}
+    <div class="chat-input">
+        <form method="POST">
+            <textarea name="content" rows="3" placeholder="Введите сообщение..." required></textarea>
+            <button type="submit" class="btn-send-message">Отправить</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="chat-closed-notice">
+        <p>Этот чат закрыт. Вы не можете отправлять сообщения.</p>
+    </div>
+    {% endif %}
+
+    <div class="chat-back">
+        <a href="/help_chat" class="btn-back">← Назад к чатам</a>
+    </div>
+</div>
+{% endblock %}
