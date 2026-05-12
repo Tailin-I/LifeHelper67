@@ -31,7 +31,7 @@
         <div class="moderator-controls">
             <form action="/toggle_topic/{{ topic.id }}" method="POST" style="display:inline;">
                 <button type="submit" class="btn-close-topic">
-                    {% if topic.is_closed %} Открыть тему{% else %}🔒 Закрыть тему{% endif %}
+                    {% if topic.is_closed %}🔓 Открыть тему{% else %}🔒 Закрыть тему{% endif %}
                 </button>
             </form>
             <form action="/delete_topic/{{ topic.id }}" method="POST" style="display:inline;" onsubmit="return confirm('Удалить тему и все сообщения?');">
@@ -43,7 +43,9 @@
 </div>
 
 <div class="posts">
-    {% for p in posts %}
+    {% for item in posts %}
+    {% set p = item.post %}
+    {% set images = item.images %}
     <div class="post">
         <div class="post-header">
             <div class="post-author">
@@ -55,6 +57,23 @@
             <div class="post-date">{{ p.created_at }}</div>
         </div>
         <div class="post-content">{{ p.content }}</div>
+
+        {% if images %}
+        <div class="post-images">
+            {% for img in images %}
+            <div class="image-item">
+                <a href="/uploads/{{ img.filename }}" target="_blank">
+                    <img src="/uploads/{{ img.filename }}" alt="{{ img.original_filename }}" loading="lazy">
+                </a>
+                <div class="image-info">
+                    <span class="image-name">{{ img.original_filename }}</span>
+                    <a href="/uploads/{{ img.filename }}/download" class="btn-download" download>Скачать</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="post-actions">
             <form action="/like/{{ p.id }}" method="POST" style="display:inline;">
                 <button type="submit" class="btn-like {% if p.user_liked %}liked{% endif %}">
@@ -80,9 +99,18 @@
 <div class="reply-form" id="reply-form">
     <h3>Ответить</h3>
     <div id="reply_notice" style="display:none; color:#1877f2; font-weight:600; margin-bottom:10px;"></div>
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="reply_to_id" id="reply_to_id" value="">
         <textarea name="content" rows="4" placeholder="Ваше сообщение..." required></textarea>
+
+        <div class="form-group">
+            <label for="reply_images">📎 Прикрепить изображения</label>
+            <input type="file" id="reply_images" name="images" multiple accept="image/png,image/jpeg,image/gif,image/webp">
+            <small class="form-text">
+                Можно выбрать несколько файлов. Макс. размер каждого: 16MB.
+            </small>
+        </div>
+
         <button type="submit" class="btn-send">Отправить</button>
     </form>
 </div>
