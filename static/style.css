@@ -1522,3 +1522,34 @@ footer {
     font-size: 13px;
     color: #65676b;
 }
+/* === ГЛАВНАЯ ШАПКА (ФИКСИРОВАННАЯ) === */
+nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: #ffffff;
+    border-bottom: 1px solid #e4e6eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* === ХЛЕБНЫЕ КРОШКИ (НЕ ЗАЛИПАЮТ) === */
+.breadcrumbs {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #65676b;
+}
+
+.breadcrumbs a {
+    color: #1877f2;
+    text-decoration: none;
+}
+
+/* === ОТСТУП ДЛЯ КОНТЕНТА === */
+main {
+    padding-top: 20px;
+}
