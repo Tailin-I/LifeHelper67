@@ -10,6 +10,7 @@ app = Flask(__name__)
 app.secret_key = 'OLEG_SONYA_I_SLAVA_BOGI_ETOGO_MIRA_GOIDA_52_676767_LIFE_HELPER_SLAVA_VELIKOI_KITAISKOI_NARODNOI_RESPUBLIKI_HAIL_HIHIHIHIHIHIHIHIHIHIIHHIHI'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
+# настройки загрузки файлов
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -29,6 +30,7 @@ def get_db():
     return conn
 
 
+# база данных
 def init_db():
     conn = get_db()
     conn.executescript('''
@@ -124,6 +126,7 @@ def init_db():
     conn.close()
 
 
+# проверка прав модера
 def moderator_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -141,6 +144,7 @@ def moderator_required(f):
     return decorated_function
 
 
+# главная страница
 @app.route('/')
 def index():
     conn = get_db()
@@ -158,6 +162,7 @@ def index():
     return render_template('index.html', forums=forums, user=session.get('user'), stats=stats)
 
 
+# регистрация
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -175,6 +180,7 @@ def register():
     return render_template('register.html')
 
 
+# вход
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -191,12 +197,14 @@ def login():
     return render_template('login.html')
 
 
+# выход
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
 
 
+# просмотр форума
 @app.route('/forum/<int:forum_id>')
 def forum(forum_id):
     conn = get_db()
@@ -210,6 +218,7 @@ def forum(forum_id):
     return render_template('forum.html', forum=f, topics=topics, user=session.get('user'))
 
 
+# создание темы
 @app.route('/new_topic/<int:forum_id>', methods=['GET', 'POST'])
 def new_topic(forum_id):
     if 'user_id' not in session:
@@ -241,6 +250,7 @@ def new_topic(forum_id):
     return render_template('new_topic.html', forum_id=forum_id)
 
 
+# лайк поста
 @app.route('/like/<int:post_id>', methods=['POST'])
 def like_post(post_id):
     if 'user_id' not in session:
@@ -259,6 +269,7 @@ def like_post(post_id):
     return redirect(url_for('topic', topic_id=topic['topic_id']))
 
 
+# удаление поста
 @app.route('/delete_post/<int:post_id>', methods=['POST'])
 def delete_post(post_id):
     if 'user_id' not in session:
@@ -280,8 +291,7 @@ def delete_post(post_id):
                 os.remove(file_path)
 
         conn.execute('DELETE FROM likes WHERE post_id = ?', (post_id,))
-        conn.execute('DELETE FROM post_images WHERE post_id = ?',
-                     (post_id,))
+        conn.execute('DELETE FROM post_images WHERE post_id = ?', (post_id,))
         conn.execute('DELETE FROM posts WHERE id = ?', (post_id,))
         conn.commit()
         flash('Сообщение удалено', 'success')
@@ -293,6 +303,7 @@ def delete_post(post_id):
     return redirect(url_for('topic', topic_id=topic_id))
 
 
+# закрыть/открыть тему
 @app.route('/toggle_topic/<int:topic_id>', methods=['POST'])
 @moderator_required
 def toggle_topic(topic_id):
@@ -309,6 +320,7 @@ def toggle_topic(topic_id):
     return redirect(url_for('topic', topic_id=topic_id))
 
 
+# удаление темы
 @app.route('/delete_topic/<int:topic_id>', methods=['POST'])
 @moderator_required
 def delete_topic(topic_id):
@@ -335,6 +347,7 @@ def delete_topic(topic_id):
     return redirect(url_for('index'))
 
 
+# просмотр темы
 @app.route('/topic/<int:topic_id>', methods=['GET', 'POST'])
 def topic(topic_id):
     conn = get_db()
@@ -395,6 +408,7 @@ def topic(topic_id):
                            user_id=session.get('user_id'), user_is_moderator=user_is_moderator)
 
 
+# чат помощи
 @app.route('/help_chat')
 def help_chat():
     if 'user_id' not in session:
@@ -427,6 +441,7 @@ def help_chat():
     return render_template('help_chat.html', chats=chats, is_moderator=is_moderator, user=session.get('user'))
 
 
+# чат помощи - комната
 @app.route('/help_chat/<int:chat_id>', methods=['GET', 'POST'])
 def help_chat_room(chat_id):
     if 'user_id' not in session:
@@ -490,6 +505,7 @@ def help_chat_room(chat_id):
                            is_moderator=is_moderator, user=session.get('user'))
 
 
+# создать чат
 @app.route('/help_chat/create', methods=['POST'])
 def create_help_chat():
     if 'user_id' not in session:
@@ -514,6 +530,7 @@ def create_help_chat():
     return redirect(url_for('help_chat_room', chat_id=chat_id))
 
 
+# закрыть чат
 @app.route('/help_chat/<int:chat_id>/close', methods=['POST'])
 @moderator_required
 def close_help_chat(chat_id):
@@ -525,136 +542,92 @@ def close_help_chat(chat_id):
     return redirect(url_for('help_chat'))
 
 
+# политика конфиденциальности
 @app.route('/privacy')
 def privacy():
     return render_template('privacy.html', user=session.get('user'))
 
 
+# загруженные файлы
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
+# скачать файл
 @app.route('/uploads/<filename>/download')
 def download_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 
-@app.route('/api/forums', methods=['GET'])
-def api_forums():
+# создать тему через api
+@app.route('/api/topic', methods=['POST'])
+def api_create_topic():
+    data = request.get_json()
+
+    if not data or 'title' not in data or 'forum_id' not in data or 'content' not in data:
+        return jsonify({'error': 'Missing required fields: title, forum_id, content'}), 400
+
+    if 'user_id' not in session:
+        return jsonify({'error': 'Authentication required'}), 401
+
     conn = get_db()
-    forums = conn.execute('''
-        SELECT f.*, COUNT(t.id) as topic_count
-        FROM forums f LEFT JOIN topics t ON f.id = t.forum_id
-        GROUP BY f.id
-    ''').fetchall()
+
+    forum = conn.execute('SELECT id FROM forums WHERE id = ?', (data['forum_id'],)).fetchone()
+    if not forum:
+        conn.close()
+        return jsonify({'error': 'Forum not found'}), 404
+
+    conn.execute('''
+        INSERT INTO topics (forum_id, title, author_id, is_closed)
+        VALUES (?, ?, ?, 0)
+    ''', (data['forum_id'], data['title'], session['user_id']))
+
+    topic_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
+
+    conn.execute('''
+        INSERT INTO posts (topic_id, author_id, content)
+        VALUES (?, ?, ?)
+    ''', (topic_id, session['user_id'], data['content']))
+
+    conn.commit()
     conn.close()
-    return jsonify([{
-        'id': f['id'],
-        'name': f['name'],
-        'description': f['description'],
-        'topic_count': f['topic_count']
-    } for f in forums])
+
+    return jsonify({
+        'message': 'Topic created',
+        'topic_id': topic_id,
+        'title': data['title']
+    }), 201
 
 
-@app.route('/api/forum/<int:forum_id>/topics', methods=['GET'])
-def api_forum_topics(forum_id):
+# удалить тему через api
+@app.route('/api/topic/<int:topic_id>', methods=['DELETE'])
+def api_delete_topic(topic_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Authentication required'}), 401
+
     conn = get_db()
-    topics = conn.execute('''
-        SELECT t.id, t.title, t.created_at, u.username as author,
-               (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) as post_count
-        FROM topics t
-        JOIN users u ON t.author_id = u.id
-        WHERE t.forum_id = ?
-        ORDER BY t.created_at DESC
-    ''', (forum_id,)).fetchall()
-    conn.close()
-    return jsonify([{
-        'id': t['id'],
-        'title': t['title'],
-        'author': t['author'],
-        'created_at': t['created_at'],
-        'post_count': t['post_count']
-    } for t in topics])
 
-
-@app.route('/api/topic/<int:topic_id>', methods=['GET'])
-def api_topic(topic_id):
-    conn = get_db()
-    topic = conn.execute('''
-        SELECT t.*, u.username as author, f.name as forum_name
-        FROM topics t
-        JOIN users u ON t.author_id = u.id
-        JOIN forums f ON t.forum_id = f.id
-        WHERE t.id = ?
-    ''', (topic_id,)).fetchone()
-
+    topic = conn.execute('SELECT author_id, forum_id FROM topics WHERE id = ?', (topic_id,)).fetchone()
     if not topic:
         conn.close()
         return jsonify({'error': 'Topic not found'}), 404
 
-    posts = conn.execute('''
-        SELECT p.*, u.username as author,
-               (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes
-        FROM posts p
-        JOIN users u ON p.author_id = u.id
-        WHERE p.topic_id = ?
-        ORDER BY p.created_at ASC
-    ''', (topic_id,)).fetchall()
-    conn.close()
+    user = conn.execute('SELECT is_moderator FROM users WHERE id = ?', (session['user_id'],)).fetchone()
 
-    return jsonify({
-        'id': topic['id'],
-        'title': topic['title'],
-        'forum_name': topic['forum_name'],
-        'author': topic['author'],
-        'created_at': topic['created_at'],
-        'posts': [{
-            'id': p['id'],
-            'author': p['author'],
-            'content': p['content'],
-            'created_at': p['created_at'],
-            'likes': p['likes']
-        } for p in posts]
-    })
-
-
-@app.route('/api/register', methods=['POST'])
-def api_register():
-    data = request.get_json()
-    if not data or 'username' not in data or 'email' not in data or 'password' not in data:
-        return jsonify({'error': 'Missing required fields'}), 400
-
-    conn = get_db()
-    if conn.execute('SELECT id FROM users WHERE username=? OR email=?',
-                    (data['username'], data['email'])).fetchone():
+    if not user['is_moderator'] and topic['author_id'] != session['user_id']:
         conn.close()
-        return jsonify({'error': 'Username or email already exists'}), 409
+        return jsonify({'error': 'Permission denied'}), 403
 
-    conn.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-                 (data['username'], data['email'], generate_password_hash(data['password'])))
+    conn.execute('DELETE FROM likes WHERE post_id IN (SELECT id FROM posts WHERE topic_id = ?)', (topic_id,))
+    conn.execute('DELETE FROM post_images WHERE post_id IN (SELECT id FROM posts WHERE topic_id = ?)', (topic_id,))
+    conn.execute('DELETE FROM posts WHERE topic_id = ?', (topic_id,))
+    conn.execute('DELETE FROM topics WHERE id = ?', (topic_id,))
+
     conn.commit()
     conn.close()
-    return jsonify({'message': 'User created', 'username': data['username']}), 201
 
-
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data:
-        return jsonify({'error': 'Missing credentials'}), 400
-
-    conn = get_db()
-    user = conn.execute('SELECT * FROM users WHERE username=? OR email=?',
-                        (data['username'], data['username'])).fetchone()
-    conn.close()
-
-    if user and check_password_hash(user['password'], data['password']):
-        return jsonify({
-            'message': 'Login successful',
-            'user': {'id': user['id'], 'username': user['username']}
-        })
-    return jsonify({'error': 'Invalid credentials'}), 401
+    return jsonify({'message': 'Topic deleted', 'topic_id': topic_id})
 
 
 if __name__ == '__main__':

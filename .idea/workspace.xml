@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dbdea0d1-1330-47cc-bfe7-2f0774486a8f" name="Changes" comment="ya B" />
+    <list default="true" id="dbdea0d1-1330-47cc-bfe7-2f0774486a8f" name="Changes" comment="починка шапки">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,7 +23,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="6959c6c5e8f754681160e9cb9ba4dbc55d42f917" />
+        <entry key="$PROJECT_DIR$" value="3156ed2049948d880840aea044dcde46f9b92c8a" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -41,7 +44,6 @@
   &quot;associatedIndex&quot;: 0
 }</component>
   <component name="ProjectId" id="3D5H392qfNJir5QGFfNFZ7mS3Uc" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -100,6 +102,15 @@
       <option name="presentableId" value="Default" />
       <updated>1777564809375</updated>
     </task>
+    <task id="LOCAL-00001" summary="починка шапки">
+      <option name="closed" value="true" />
+      <created>1778620872625</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1778620872625</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -118,7 +129,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="ya B" />
-    <option name="LAST_COMMIT_MESSAGE" value="ya B" />
+    <MESSAGE value="починка шапки" />
+    <option name="LAST_COMMIT_MESSAGE" value="починка шапки" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
