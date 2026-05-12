@@ -1,10 +1,25 @@
+import os
 import sqlite3
-from flask import Flask, render_template, request, session, redirect, url_for, flash
+from flask import Flask, render_template, request, session, redirect, url_for, flash, jsonify, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from functools import wraps
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'OLEG_SONYA_I_SLAVA_BOGI_ETOGO_MIRA_GOIDA_52_676767_LIFE_HELPER_SLAVA_VELIKOI_KITAISKOI_NARODNOI_RESPUBLIKI_HAIL_HIHIHIHIHIHIHIHIHIHIIHHIHI'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 DB_PATH = 'forum.db'
 
 
@@ -44,6 +59,14 @@ def init_db():
             content TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             reply_to_id INTEGER REFERENCES posts(id)
+        );
+        CREATE TABLE IF NOT EXISTS post_images (
+            id INTEGER PRIMARY KEY,
+            post_id INTEGER,
+            filename TEXT,
+            original_filename TEXT,
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
         );
         CREATE TABLE IF NOT EXISTS likes (
             id INTEGER PRIMARY KEY,
@@ -199,6 +222,19 @@ def new_topic(forum_id):
         tid = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
         conn.execute('INSERT INTO posts (topic_id, author_id, content) VALUES (?, ?, ?)',
                      (tid, session['user_id'], content))
+
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            for file in files:
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+                    unique_filename = f"{timestamp}_{filename}"
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(file_path)
+                    conn.execute('INSERT INTO post_images (post_id, filename, original_filename) VALUES (?, ?, ?)',
+                                 (tid, unique_filename, filename))
+
         conn.commit()
         conn.close()
         return redirect(url_for('topic', topic_id=tid))
@@ -232,15 +268,26 @@ def delete_post(post_id):
     if not post:
         conn.close()
         return redirect(url_for('index'))
+
     user = conn.execute('SELECT is_moderator FROM users WHERE id = ?',
                         (session['user_id'],)).fetchone()
+
     if user['is_moderator'] or post['author_id'] == session['user_id']:
+        images = conn.execute('SELECT filename FROM post_images WHERE post_id = ?', (post_id,)).fetchall()
+        for img in images:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], img['filename'])
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
         conn.execute('DELETE FROM likes WHERE post_id = ?', (post_id,))
+        conn.execute('DELETE FROM post_images WHERE post_id = ?',
+                     (post_id,))
         conn.execute('DELETE FROM posts WHERE id = ?', (post_id,))
         conn.commit()
         flash('Сообщение удалено', 'success')
     else:
         flash('У вас нет прав для удаления этого сообщения', 'error')
+
     topic_id = post['topic_id']
     conn.close()
     return redirect(url_for('topic', topic_id=topic_id))
@@ -268,8 +315,17 @@ def delete_topic(topic_id):
     conn = get_db()
     topic = conn.execute('SELECT forum_id FROM topics WHERE id = ?', (topic_id,)).fetchone()
     if topic:
+        posts = conn.execute('SELECT id FROM posts WHERE topic_id = ?', (topic_id,)).fetchall()
+        for p in posts:
+            images = conn.execute('SELECT filename FROM post_images WHERE post_id = ?', (p['id'],)).fetchall()
+            for img in images:
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], img['filename'])
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
         conn.execute('DELETE FROM likes WHERE post_id IN (SELECT id FROM posts WHERE topic_id = ?)',
                      (topic_id,))
+        conn.execute('DELETE FROM post_images WHERE post_id IN (SELECT id FROM posts WHERE topic_id = ?)', (topic_id,))
         conn.execute('DELETE FROM posts WHERE topic_id = ?', (topic_id,))
         conn.execute('DELETE FROM topics WHERE id = ?', (topic_id,))
         conn.commit()
@@ -287,6 +343,20 @@ def topic(topic_id):
         reply_to = request.form.get('reply_to_id') or None
         conn.execute('INSERT INTO posts (topic_id, author_id, content, reply_to_id) VALUES (?, ?, ?, ?)',
                      (topic_id, session['user_id'], content, reply_to))
+        pid = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
+
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            for file in files:
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+                    unique_filename = f"{timestamp}_{filename}"
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(file_path)
+                    conn.execute('INSERT INTO post_images (post_id, filename, original_filename) VALUES (?, ?, ?)',
+                                 (pid, unique_filename, filename))
+
         conn.commit()
         return redirect(url_for('topic', topic_id=topic_id))
 
@@ -314,8 +384,14 @@ def topic(topic_id):
         LEFT JOIN users ru ON rp.author_id = ru.id
         WHERE p.topic_id=? ORDER BY p.created_at ASC
     ''', (session.get('user_id'), topic_id)).fetchall()
+
+    posts_with_images = []
+    for post in posts:
+        images = conn.execute('SELECT * FROM post_images WHERE post_id = ?', (post['id'],)).fetchall()
+        posts_with_images.append({'post': post, 'images': images})
+
     conn.close()
-    return render_template('topic.html', topic=t, posts=posts, user=session.get('user'),
+    return render_template('topic.html', topic=t, posts=posts_with_images, user=session.get('user'),
                            user_id=session.get('user_id'), user_is_moderator=user_is_moderator)
 
 
@@ -452,6 +528,16 @@ def close_help_chat(chat_id):
 @app.route('/privacy')
 def privacy():
     return render_template('privacy.html', user=session.get('user'))
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+@app.route('/uploads/<filename>/download')
+def download_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 
 @app.route('/api/forums', methods=['GET'])
